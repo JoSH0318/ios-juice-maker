@@ -29,29 +29,22 @@ final class OrderViewController: UIViewController {
         super.viewDidLoad()
         showCurrentStock()
     }
-
+    
     private func showCurrentStock() {
         juiceMaker.fruitStore.inventory.keys.forEach {
             switch $0 {
             case .strawberry:
-                strawberryStockLabel.text = convertFruitStockToString(.strawberry)
+                strawberryStockLabel.text = juiceMaker.fruitStore.inventory[.strawberry]?.description
             case .banana:
-                bananaStockLabel.text = convertFruitStockToString(.banana)
+                bananaStockLabel.text = juiceMaker.fruitStore.inventory[.banana]?.description
             case .pineapple:
-                pineappleStockLabel.text = convertFruitStockToString(.pineapple)
+                pineappleStockLabel.text = juiceMaker.fruitStore.inventory[.pineapple]?.description
             case .kiwi:
-                kiwiStockLabel.text = convertFruitStockToString(.kiwi)
+                kiwiStockLabel.text = juiceMaker.fruitStore.inventory[.kiwi]?.description
             case .mango:
-                mangoStockLabel.text = convertFruitStockToString(.mango)
+                mangoStockLabel.text = juiceMaker.fruitStore.inventory[.mango]?.description
             }
         }
-    }
-    
-    private func convertFruitStockToString(_ fruit: Fruit) -> String? {
-        guard let currentStock = juiceMaker.fruitStore.inventory[fruit] else {
-            return nil
-        }
-        return String(currentStock)
     }
     
     @IBAction func moveToStockViewButtonClicked(_ sender: UIBarButtonItem) {
@@ -62,8 +55,8 @@ final class OrderViewController: UIViewController {
         guard let stockViewController = self.storyboard?.instantiateViewController(withIdentifier: "stockViewController") as? StockViewController else {
             return
         }
-        stockViewController.modalTransitionStyle = .coverVertical
-        stockViewController.modalPresentationStyle = .automatic
+        stockViewController.delegate = self
+        stockViewController.changedStock = juiceMaker.fruitStore.inventory
         self.present(stockViewController, animated: true, completion: nil)
     }
 
@@ -126,4 +119,15 @@ extension OrderViewController {
         alert.addAction(defaultAction)
         present(alert, animated: true, completion: nil)
     }
+}
+
+extension OrderViewController: DeliveryStock {
+    func updateStock(_ changedStock: [Fruit: Int]) {
+        juiceMaker.fruitStore.inventory = changedStock
+        showCurrentStock()
+    }
+}
+
+protocol DeliveryStock: NSObjectProtocol {
+    func updateStock(_ changedStock: [Fruit: Int])
 }
